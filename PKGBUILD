@@ -1,10 +1,11 @@
 pkgname=(
     poppler
     poppler-glib
+    poppler-qt
 )
 pkgbase=poppler
-pkgver=25.09.1
-pkgrel=1
+pkgver=25.10.0
+pkgrel=2
 arch=('x86_64')
 url="https://poppler.freedesktop.org/"
 license=(
@@ -22,7 +23,6 @@ makedepends=(
     'curl'
     'fontconfig'
     'gcc-libs'
-    'glib2'
     'glib2-devel'
     'gobject-introspection'
     'gpgmepp'
@@ -34,33 +34,33 @@ makedepends=(
     'ninja'
     'nss'
     'openjpeg'
+    'pkgconf'
     'poppler-data'
     'python'
+    'qt6-qtbase'
 )
 options=('!emptydirs')
 source=(https://poppler.freedesktop.org/${pkgbase}-${pkgver}.tar.xz)
-sha256sums=(0c1091d01d3dd1664a13816861e812d02b29201e96665454b81b52d261fad658)
+sha256sums=(6b5e9bb64dabb15787a14db1675291c7afaf9387438cc93a4fb7f6aec4ee6fe0)
 
-build() {
-    cd ${pkgbase}-${pkgver}
-
-    local cmake_args=(
-        -B flarebird-build
-        -G Ninja
-        -D CMAKE_BUILD_TYPE=Release
-        -D CMAKE_INSTALL_PREFIX=/usr
-        -D CMAKE_INSTALL_LIBDIR=lib64
-        -D TESTDATADIR=${PWD}/testfiles
-        -D ENABLE_QT5=OFF
-        -D ENABLE_QT6=OFF
-        -D ENABLE_GTK_DOC=ON
-        -D ENABLE_UNSTABLE_API_ABI_HEADERS=ON
-    )
-
-    cmake "${cmake_args[@]}"
-
-    cmake --build flarebird-build
-}
+# build() {
+#     cd ${pkgbase}-${pkgver}
+#
+#     local cmake_args=(
+#         -B flarebird-build
+#         -G Ninja
+#         -D CMAKE_BUILD_TYPE=Release
+#         -D CMAKE_INSTALL_PREFIX=/usr
+#         -D CMAKE_INSTALL_LIBDIR=lib64
+#         -D ENABLE_QT5=OFF
+#         -D ENABLE_GTK_DOC=ON
+#         -D ENABLE_UNSTABLE_API_ABI_HEADERS=ON
+#     )
+#
+#     cmake "${cmake_args[@]}"
+#
+#     cmake --build flarebird-build
+# }
 
 package_poppler() {
     pkgdesc="PDF rendering library based on xpdf 3.0"
@@ -114,4 +114,23 @@ package_poppler-glib() {
 
     rm -vf ${pkgdir}/usr/lib64/libpoppler.*
     rm -vf ${pkgdir}/usr/bin/poppler-glib-demo
+}
+
+package_poppler-qt() {
+    pkgdesc="Poppler Qt6 bindings"
+    depends=(
+        'freetype2'
+        'gcc-libs'
+        'glibc'
+        'lcms2'
+        "poppler=${pkgver}"
+        'qt6-qtbase'
+    )
+
+    cd ${pkgbase}-${pkgver}
+
+    DESTDIR=${pkgdir} cmake --install flarebird-build/qt6
+
+    install -m755 -d ${pkgdir}/usr/lib64/pkgconfig
+    install -m644 flarebird-build/poppler-qt6.pc ${pkgdir}/usr/lib64/pkgconfig/
 }
